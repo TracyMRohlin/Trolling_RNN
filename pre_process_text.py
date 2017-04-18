@@ -5,7 +5,8 @@ import pickle
 from collections import Counter
 
 def main():
-    comment_type = ["aggression", "toxicity", "attack"]
+    # Only doing one type... remove loop entirely?
+    comment_type = ["attack"]
     for c_type in comment_type:
         comments = pd.read_csv(c_type + '_annotated_comments.tsv', sep = '\t', index_col = 0)
         annotations = pd.read_csv(c_type + '_annotations.tsv',  sep = '\t')
