@@ -1,5 +1,31 @@
 # Naive Bayes - Simple Bag of Words
 
+      |             F |
+      |      T      a |
+      |      r      l |
+      |      u      s |
+      |      e      e |
+------+---------------+
+ True | <28.7%> 25.9% |
+False |   1.0% <44.3%>|
+------+---------------+
+(row = reference; col = test)
+
+Accuracy: 0.7304063860667634
+F1: 0.6804301075268817
+ROC: 0.8439703851261621
+
+
+# MaxEnt - Simple Bag of Words
+
+
+
+
+
+#~~~Old data sets (full dataset, no random sampling)~~~#
+
+# Naive Bayes - Simple Bag of Words
+
       |      F        |
       |      a      T |
       |      l      r |
