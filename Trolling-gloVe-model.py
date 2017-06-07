@@ -72,9 +72,9 @@ test_data = comments.loc[comments['split'] == 'test']
 # In[6]:
 
 # The list of gold-standard labels for the data
-train_labels = train_data["attack"].tolist()
-dev_labels = dev_data["attack"].tolist()
-test_labels = test_data["attack"].tolist()
+train_y = train_data["attack"].tolist()
+dev_y = dev_data["attack"].tolist()
+test_y = test_data["attack"].tolist()
 # Put all the training data (comments) into a list
 train_texts = train_data["comment"].tolist()
 dev_texts = dev_data["comment"].tolist()
@@ -109,9 +109,9 @@ def randomly_sample(comments, labels):
 # In[8]:
 
 # randomly select non-attack data such that it creates an even split with the attack data
-train_texts, train_labels = randomly_sample(train_texts, train_labels)
-dev_texts, dev_labels = randomly_sample(dev_texts, dev_labels)
-test_texts, test_labels = randomly_sample(test_texts, test_labels)
+train_texts, train_labels = randomly_sample(train_texts, train_y)
+dev_texts, dev_labels = randomly_sample(dev_texts, dev_y)
+test_texts, test_labels = randomly_sample(test_texts, test_y)
 train_labels = np.asarray(train_labels)
 dev_labels = np.asarray(dev_labels)
 test_labels = np.asarray(test_labels)
@@ -163,7 +163,7 @@ train_matrix.shape[0], train_matrix.shape[1]
 
 # create an embedding layer of wordvec values
 # assumes you have downloaded he glove.6b dataset here: http://nlp.stanford.edu/data/glove.6B.zip
-embeddings_index = {}
+"""embeddings_index = {}
 f = open(os.path.join(str(os.getcwd())+"/glove.6B", 'glove.6B.200d.txt'))
 for line in f:
     values = line.split()
@@ -194,33 +194,22 @@ embedding_layer = Embedding(vocab_size,
                             embedding_dim,
                             weights=[embedding_matrix],
                             input_length=train_matrix.shape[1],
-                            trainable=False)
+                            trainable=False)"""
 
-
-# In[38]:
 
 # Make a model.
-model = Sequential()                # following the model listed in the model.add(embedding_layer)
-model.add(embedding_layer)          # paper with 50 layers and 4 training epochs
-model.add(Dense(embedding_dim))
-for _ in range(48):
-    model.add(Dense(embedding_dim))
-resnet = Residual(model)
+model = Sequential()
+# Add embedding layer.
+model.add(Embedding(5000, 200, input_length=train_matrix.shape[1]))
+    #for _ in range(50):
+
 model.add(Flatten())
-
-
-# In[39]:
-
 model.add(Dense(1, activation='sigmoid'))
 
-
-# In[40]:
 
 model.compile(loss='binary_crossentropy',
               optimizer='adam',
               metrics=['accuracy'])
-
-
 # In[ ]:
 
 # Train model
@@ -236,9 +225,28 @@ model.fit(train_matrix, train_labels,
 score, acc = model.evaluate(test_matrix, test_labels, batch_size=128)
 print('\nAccuracy: %1.4f' % acc)
 print('Score: %1.4f' % score)
+from sklearn import metrics
 
+# AUC measure
+def auc_score(y_true, y_pred):
+    return metrics.roc_auc_score(y_true, y_pred)
 
-# In[ ]:
+y_pred = model.predict(test_matrix, batch_size=2)
+roc = auc_score(test_y, y_pred)
+print('AUROC:{}'.format(roc))
 
+from matplotlib import pyplot as plt
+fpr, tpr, _ = metrics.roc_curve(test_labels, y_pred)
 
+def plot_ROC(fpr, tpr, roc_auc):
+    plt.title('Receiver Operating Characteristic')
+    plt.plot(fpr, tpr, 'b', label = 'AUC = %0.2f' % roc_auc)
+    plt.legend(loc = 'lower right')
+    plt.plot([0, 1], [0, 1],'r--')
+    plt.xlim([0, 1])
+    plt.ylim([0, 1])
+    plt.ylabel('True Positive Rate')
+    plt.xlabel('False Positive Rate')
+    plt.savefig("No-Glove-3layer.png")
 
+plot_ROC(fpr, tpr, roc)
